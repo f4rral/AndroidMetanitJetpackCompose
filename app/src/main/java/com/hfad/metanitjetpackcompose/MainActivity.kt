@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
@@ -51,52 +50,59 @@ fun ListLanguages() {
 
     Column {
         LazyRow {
-            items(languages) { lang ->
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .background(Color(lang.hexColor))
-                    )
-                    Text(
-                        text = lang.name,
-                        fontSize = 24.sp,
-                        modifier = Modifier
-                            .padding(16.dp)
-                    )
-                }
-            }
+            items(languages) { ColumnLanguage(it)}
         }
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            items(languages) { lang ->
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .background(Color(lang.hexColor))
-                    )
-                    Text(
-                        text = lang.name,
-                        fontSize = 24.sp,
-                        modifier = Modifier
-                            .padding(16.dp)
-                    )
-                }
-            }
+            items(languages) { RowLanguage(it) }
         }
+    }
+}
+
+@Composable
+fun ColumnLanguage(lang: Language) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(Color(lang.hexColor))
+        )
+        Text(
+            text = lang.name,
+            fontSize = 24.sp,
+            modifier = Modifier
+                .padding(vertical = 16.dp)
+        )
+    }
+}
+
+@Composable
+fun RowLanguage(lang: Language) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(Color(lang.hexColor))
+        )
+        Text(
+            text = lang.name,
+            fontSize = 24.sp,
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+        )
     }
 }
 
