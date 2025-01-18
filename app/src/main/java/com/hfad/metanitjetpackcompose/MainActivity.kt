@@ -3,25 +3,32 @@ package com.hfad.metanitjetpackcompose
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavType
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,66 +44,96 @@ fun Main() {
     // Контроллер навигации - управление стеком навигации
     val navController = rememberNavController()
 
-    val employees = listOf(
-        Employee(1, "Tom", 39),
-        Employee(2, "Bob", 43),
-        Employee(3, "Sam", 28)
-    )
+    Column(
+        modifier = Modifier.padding(8.dp).fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        NavHost(navController, startDestination = NavRouters.Home.route) {
+            composable(NavRouters.Home.route) { Home() }
+            composable(NavRouters.About.route) { About() }
+            composable(NavRouters.Contacts.route) { Contacts() }
+        }
 
-    // Host навигации - это специальный компонент, который добавляется в макет пользовательского
-    // интерфейса действия и служит заполнителем для страниц, по которым будет
-    // перемещаться пользователь
-    NavHost(navController, startDestination = UserRoutes.Users.route) {
-        composable(UserRoutes.Users.route) { Users(employees, navController) }
-        composable(UserRoutes.User.route + "/{userId}",
-            arguments = listOf(
-                navArgument("userId") { type = NavType.IntType }
+        Box() {
+            BottomNavigationBar(navController = navController)
+        }
+    }
+}
+
+@Composable
+fun BottomNavigationBar(navController: NavController) {
+    NavigationBar {
+        // Идентификация текущего маршрута
+        val backStaticEntry by navController.currentBackStackEntryAsState();
+        val currentRouters = backStaticEntry?.destination?.route
+
+        NavBarItems.BarItems.forEach { navItem ->
+            NavigationBarItem(
+                selected = currentRouters == navItem.route,
+                onClick = {
+                    navController.navigate(navItem.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                icon = {
+                    Icon(imageVector = navItem.image, contentDescription = navItem.title)
+                },
+                label = {
+                    Text(text = navItem.title)
+                }
             )
-        ) {
-            stackEntry ->
-                val userId = stackEntry.arguments?.getInt("userId")
-                User(userId, employees)
         }
     }
+}
+
+object NavBarItems {
+    val BarItems = listOf(
+        BarItem(
+            title = "Home",
+            image = Icons.Filled.Home,
+            route = "home"
+        ),
+        BarItem(
+            title = "Contacts",
+            image = Icons.Filled.Face,
+            route = "contacts"
+        ),
+        BarItem(
+            title = "About",
+            image = Icons.Filled.Info,
+            route = "about"
+        )
+    )
+}
+
+data class BarItem(
+    val title: String,
+    val image: ImageVector,
+    val route: String
+)
+
+@Composable
+fun Home() {
+    Text("Home Page", fontSize = 30.sp)
 }
 
 @Composable
-fun Users(data: List<Employee>, navController: NavController) {
-    LazyColumn {
-        items(data) { user ->
-            Row(Modifier.fillMaxWidth()) {
-                Text(user.name,
-                    Modifier
-                        .padding(8.dp)
-                        .clickable { navController.navigate("user/${user.id}") },
-                    fontSize = 28.sp
-                )
-            }
-        }
-    }
+fun Contacts() {
+    Text("Contacts Page", fontSize = 30.sp)
 }
 
 @Composable
-fun User(userId: Int?, data: List<Employee>) {
-    val user = data.find { it.id == userId }
-
-    if (user != null) {
-        Column {
-            Text("Id: ${user.id}", Modifier.padding(8.dp), fontSize = 22.sp)
-            Text("Name: ${user.name}", Modifier.padding(8.dp), fontSize = 22.sp)
-            Text("Age: ${user.age}", Modifier.padding(8.dp), fontSize = 22.sp)
-        }
-    } else {
-        Text("User Not Found")
-    }
+fun About() {
+    Text("About Page", fontSize = 30.sp)
 }
 
-sealed class UserRoutes(val route: String) {
-    object Users: UserRoutes("users")
-    object User: UserRoutes("user")
+sealed class NavRouters(val route: String) {
+    object Home: NavRouters("home")
+    object Contacts: NavRouters("contacts")
+    object About: NavRouters("about")
 }
-
-data class Employee(val id: Int, val name: String, val age: Int)
 
 @Preview(showSystemUi = false, showBackground = true)
 @Composable
